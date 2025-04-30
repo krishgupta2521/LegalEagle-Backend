@@ -9,6 +9,7 @@ import lawyerRoutes from './routes/lawyer.router.js';
 import appointmentRoutes from './routes/appointment.router.js';
 import chatRoutes from './routes/chat.router.js';
 import walletRoutes from './routes/wallet.router.js';
+import authRoutes from './routes/auth.router.js';
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/lawyer', lawyerRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/auth', authRoutes);
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
