@@ -9,11 +9,33 @@ const chatRoomSchema = new mongoose.Schema({
   },
   messages: [
     {
-      sender: String,
-      text: String,
-      timestamp: Date,
+      sender: {
+        type: String,
+        enum: ['user', 'lawyer'],
+        required: true
+      },
+      text: {
+        type: String,
+        required: true
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      },
+      read: {
+        type: Boolean,
+        default: false
+      }
     },
   ],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);
