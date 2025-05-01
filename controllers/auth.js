@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Lawyer from '../models/LawyerProfile.js';
 
 export const register = async (req, res) => {
   try {
@@ -16,7 +17,8 @@ export const register = async (req, res) => {
     res.status(201).json({ 
       token: sessionToken, 
       userId: user._id, 
-      role: user.role 
+      role: user.role,
+      name: user.name
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -35,11 +37,23 @@ export const login = async (req, res) => {
     const sessionToken = user.generateSessionToken();
     await user.save();
 
-    res.json({ 
+    const response = { 
       token: sessionToken, 
       userId: user._id, 
-      role: user.role 
-    });
+      role: user.role,
+      name: user.name,
+      email: user.email,
+      walletBalance: user.walletBalance
+    };
+
+    if (user.role === 'lawyer') {
+      const lawyerProfile = await Lawyer.findOne({ userId: user._id });
+      if (lawyerProfile) {
+        response.lawyerProfile = lawyerProfile;
+      }
+    }
+
+    res.json(response);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

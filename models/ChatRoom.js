@@ -38,5 +38,11 @@ const chatRoomSchema = new mongoose.Schema({
   }
 });
 
+// Add indexes to improve query performance
+chatRoomSchema.index({ userId: 1, lawyerId: 1 }, { unique: true });
+chatRoomSchema.index({ userId: 1 });
+chatRoomSchema.index({ lawyerId: 1 });
+chatRoomSchema.index({ lastActivity: -1 });
+
 const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);
 export default ChatRoom;

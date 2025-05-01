@@ -5,8 +5,25 @@ const appointmentSchema = new mongoose.Schema({
   lawyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lawyer' },
   date: String,
   time: String,
+  duration: {
+    type: Number,
+    default: 60 
+  },
+  notes: {
+    type: String,
+    default: ''
+  },
   isPaid: Boolean,
-  status: String,
+  amount: Number,
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'completed', 'cancelled', 'rescheduled'],
+    default: 'pending'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 const Appointment = mongoose.model('Appointment', appointmentSchema);
