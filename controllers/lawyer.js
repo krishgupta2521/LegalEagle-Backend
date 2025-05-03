@@ -10,9 +10,16 @@ export const getAllLawyers = async (req, res) => {
       query.specialization = specialization;
     }
     
-    const lawyers = await Lawyer.find(query);
+    const lawyers = await Lawyer.find(query).select('-password -sessions');
+    console.log(`Found ${lawyers.length} lawyers`);
+    
+    if (lawyers.length === 0) {
+      return res.json({ message: 'No lawyers found' });
+    }
+    
     res.json(lawyers);
   } catch (err) {
+    console.error("Error in getAllLawyers:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -121,6 +128,83 @@ export const updateLawyerAvailability = async (req, res) => {
     
     res.json(lawyer);
   } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+export const registerLawyer = async (req, res) => {
+  try {
+    const { name, email, phone, license, specialization, experience, pricePerSession, username, password } = req.body;
+    
+    // Check if email already exists in the lawyers collection
+    const existingLawyer = await Lawyer.findOne({ email });
+    if (existingLawyer) {
+      return res.status(400).json({ error: 'Email already registered as a lawyer' });
+    }
+    
+    // Create a new lawyer directly in the lawyers collection
+    const lawyer = new Lawyer({
+      name,
+      email,
+      phone,
+      licenseNumber: license,
+      specialization,
+      experience,
+      pricePerSession,
+      username,
+      password, // This will be hashed by the pre-save hook
+      bio: '',
+      education: '',
+      profilePicture: '',
+      availability: []
+    });
+    
+    // Generate session token for direct login
+    const sessionToken = lawyer.generateSessionToken();
+    await lawyer.save();
+    
+    console.log(`New lawyer registered with ID: ${lawyer._id}`);
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Lawyer registered successfully',
+      lawyerId: lawyer._id,
+      id: lawyer._id, // Add ID field for consistent access in frontend
+      token: sessionToken,
+      name: lawyer.name,
+      email: lawyer.email,
+      role: 'lawyer',
+      source: 'lawyer' // Add source field to identify this is a direct lawyer login
+    });
+  } catch (err) {
+    console.error("Error registering lawyer:", err);
+    res.status(400).json({ error: err.message });
+  }
+};
+
+export const loginLawyer = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const lawyer = await Lawyer.findOne({ email });
+    if (!lawyer || !(await lawyer.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const sessionToken = lawyer.generateSessionToken();
+    await lawyer.save();
+
+    res.json({ 
+      token: sessionToken, 
+      lawyerId: lawyer._id,
+      id: lawyer._id, // Add ID field for consistent access
+      role: 'lawyer',
+      name: lawyer.name,
+      email: lawyer.email,
+      source: 'lawyer' // Add source field for identification
+    });
+  } catch (err) {
+    console.error("Error logging in lawyer:", err);
     res.status(400).json({ error: err.message });
   }
 };
